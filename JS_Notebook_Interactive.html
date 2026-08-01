@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JavaScript Fundamentals — Interactive Notebook</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --paper:#F6F4EE;
+  --paper-raised:#FFFFFF;
+  --ink:#1C2331;
+  --ink-soft:#565F73;
+  --rule:#DCD7C9;
+  --code-bg:#12161F;
+  --code-text:#E4E7EE;
+  --code-dim:#7C8497;
+  --accent:#3D8B7D;
+  --accent-deep:#296A5E;
+  --warn:#B9682F;
+  --warn-bg:#FBEEE3;
+  --tab-index:#A79B7E;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:#C9E4DD;}
+
+/* ---------- Layout shell ---------- */
+.shell{
+  display:flex;
+  min-height:100vh;
+}
+
+/* ---------- Sidebar: notebook tab index ---------- */
+.sidebar{
+  width:230px;
+  flex-shrink:0;
+  background:var(--paper-raised);
+  border-right:1px solid var(--rule);
+  padding:28px 0 28px 0;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+}
+.brand{
+  padding:0 22px 20px 22px;
+  border-bottom:1px solid var(--rule);
+  margin-bottom:10px;
+}
+.brand .kicker{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;
+  letter-spacing:0.14em;
+  color:var(--accent-deep);
+  text-transform:uppercase;
+  margin:0 0 6px 0;
+}
+.brand h1{
+  font-family:'Fraunces',serif;
+  font-size:19px;
+  font-weight:600;
+  line-height:1.25;
+  margin:0;
+  color:var(--ink);
+}
+.progress-wrap{
+  padding:14px 22px 16px 22px;
+  border-bottom:1px solid var(--rule);
+  margin-bottom:6px;
+}
+.progress-label{
+  font-size:11px;
+  color:var(--ink-soft);
+  margin-bottom:6px;
+  display:flex;
+  justify-content:space-between;
+  font-family:'JetBrains Mono',monospace;
+}
+.progress-track{
+  height:5px;
+  background:var(--rule);
+  border-radius:3px;
+  overflow:hidden;
+}
+.progress-fill{
+  height:100%;
+  background:var(--accent);
+  border-radius:3px;
+  transition:width .4s ease;
+  width:0%;
+}
+
+nav.tabs{padding:6px 10px;}
+.tab-btn{
+  width:100%;
+  text-align:left;
+  background:none;
+  border:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:9px 12px;
+  border-radius:7px;
+  font-family:'Inter',sans-serif;
+  font-size:13.5px;
+  color:var(--ink-soft);
+  margin-bottom:1px;
+  transition:background .15s ease, color .15s ease;
+}
+.tab-btn:hover{background:#F0EEE5;color:var(--ink);}
+.tab-btn.active{background:var(--ink);color:#fff;}
+.tab-num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  width:20px;
+  color:var(--tab-index);
+  flex-shrink:0;
+}
+.tab-btn.active .tab-num{color:#C9E4DD;}
+.tab-check{
+  margin-left:auto;
+  font-size:12px;
+  color:var(--accent);
+  opacity:0;
+  flex-shrink:0;
+}
+.tab-check.done{opacity:1;}
+.tab-btn.active .tab-check.done{color:#8FE0CC;}
+
+/* ---------- Main content ---------- */
+main{
+  flex:1;
+  min-width:0;
+  padding:48px 56px 90px 56px;
+  max-width:840px;
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--accent-deep);
+  margin-bottom:10px;
+}
+.section-title{
+  font-family:'Fraunces',serif;
+  font-size:34px;
+  font-weight:600;
+  line-height:1.15;
+  margin:0 0 6px 0;
+  color:var(--ink);
+}
+.section-sub{
+  font-size:15px;
+  color:var(--ink-soft);
+  margin:0 0 30px 0;
+  max-width:600px;
+  line-height:1.5;
+}
+
+.prose{font-size:15px;line-height:1.7;color:var(--ink);}
+.prose p{margin:0 0 14px 0;}
+.prose ul{margin:0 0 14px 0;padding-left:20px;}
+.prose li{margin-bottom:7px;}
+.prose code, .prose .kw{
+  font-family:'JetBrains Mono',monospace;
+  background:#EBE7DA;
+  color:#5A4A2A;
+  padding:1.5px 5px;
+  border-radius:4px;
+  font-size:12.8px;
+}
+.prose strong{color:var(--ink);font-weight:650;}
+
+.callout{
+  border-left:3px solid var(--warn);
+  background:var(--warn-bg);
+  padding:12px 16px;
+  border-radius:0 8px 8px 0;
+  font-size:14px;
+  line-height:1.6;
+  margin:18px 0;
+  color:#6B3E1B;
+}
+.callout b{color:#6B3E1B;}
+
+/* comparison table */
+table.notebook-table{
+  width:100%;
+  border-collapse:collapse;
+  margin:16px 0 22px 0;
+  font-size:13.5px;
+}
+table.notebook-table th{
+  background:var(--ink);
+  color:#fff;
+  text-align:left;
+  padding:9px 12px;
+  font-weight:600;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;
+  letter-spacing:0.03em;
+}
+table.notebook-table td{
+  padding:9px 12px;
+  border-bottom:1px solid var(--rule);
+}
+table.notebook-table tr:nth-child(even) td{background:#FBFAF6;}
+
+/* ---------- Code runner (the signature element) ---------- */
+.runner{
+  background:var(--code-bg);
+  border-radius:12px;
+  overflow:hidden;
+  margin:20px 0 26px 0;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08), 0 8px 24px rgba(20,25,35,0.10);
+}
+.runner-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 14px;
+  background:#0C0F17;
+  border-bottom:1px solid #232A38;
+}
+.runner-dots{display:flex;gap:6px;}
+.runner-dots span{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.runner-dots span:nth-child(1){background:#E5645A;}
+.runner-dots span:nth-child(2){background:#E8B84B;}
+.runner-dots span:nth-child(3){background:#4CA383;}
+.runner-filename{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;
+  color:var(--code-dim);
+}
+.runner-actions{display:flex;gap:8px;}
+.runner-btn{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;
+  border:none;
+  cursor:pointer;
+  padding:6px 12px;
+  border-radius:6px;
+  transition:filter .15s ease, transform .05s ease;
+}
+.runner-btn:active{transform:scale(0.96);}
+.run-btn{background:var(--accent);color:#EAFBF5;font-weight:600;}
+.run-btn:hover{filter:brightness(1.1);}
+.reset-btn{background:#232A38;color:var(--code-dim);}
+.reset-btn:hover{color:#fff;}
+
+.code-editor{
+  width:100%;
+  min-height:120px;
+  background:var(--code-bg);
+  color:var(--code-text);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12.8px;
+  line-height:1.65;
+  border:none;
+  outline:none;
+  resize:vertical;
+  padding:16px 18px;
+  white-space:pre;
+  tab-size:4;
+}
+.code-editor:focus{background:#151A25;}
+
+.output-panel{
+  border-top:1px solid #232A38;
+  background:#0C0F17;
+  padding:12px 18px 14px 18px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12.5px;
+  max-height:220px;
+  overflow-y:auto;
+}
+.output-label{
+  font-size:10px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--code-dim);
+  margin-bottom:8px;
+}
+.log-line{color:#9FE8CD;margin-bottom:4px;white-space:pre-wrap;word-break:break-word;}
+.log-line.muted{color:var(--code-dim);}
+.log-line.error{color:#F0968C;}
+.log-line .arrow{color:var(--code-dim);margin-right:6px;}
+
+/* ---------- Challenge card ---------- */
+.challenge{
+  background:var(--paper-raised);
+  border:1px solid var(--rule);
+  border-radius:12px;
+  padding:20px 22px;
+  margin:26px 0 8px 0;
+}
+.challenge-head{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:8px;
+}
+.challenge-badge{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  background:var(--ink);
+  color:#fff;
+  padding:3px 9px;
+  border-radius:20px;
+}
+.challenge-title{
+  font-family:'Fraunces',serif;
+  font-weight:600;
+  font-size:16.5px;
+  color:var(--ink);
+}
+.challenge-body{font-size:14.5px;line-height:1.6;color:var(--ink);margin-bottom:12px;}
+.hint-toggle{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  background:none;
+  border:1px solid var(--rule);
+  color:var(--accent-deep);
+  padding:6px 12px;
+  border-radius:7px;
+  cursor:pointer;
+}
+.hint-toggle:hover{background:#F0EEE5;}
+.hint-box{
+  margin-top:10px;
+  font-size:13.5px;
+  line-height:1.6;
+  color:var(--ink-soft);
+  background:#F0EEE5;
+  padding:12px 14px;
+  border-radius:8px;
+  display:none;
+}
+.hint-box.shown{display:block;}
+
+.mark-done-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:34px;
+  padding-top:20px;
+  border-top:1px solid var(--rule);
+}
+.mark-done-btn{
+  font-family:'Inter',sans-serif;
+  font-weight:600;
+  font-size:13.5px;
+  background:var(--ink);
+  color:#fff;
+  border:none;
+  padding:11px 18px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.mark-done-btn.done{background:var(--accent);}
+.mark-done-btn:hover{filter:brightness(1.15);}
+.nav-arrows{display:flex;gap:8px;}
+.nav-arrow{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12.5px;
+  background:none;
+  border:1px solid var(--rule);
+  color:var(--ink-soft);
+  padding:9px 14px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.nav-arrow:hover{background:#F0EEE5;color:var(--ink);}
+.nav-arrow:disabled{opacity:0.35;cursor:not-allowed;}
+
+/* Cheat sheet grid */
+.cheat-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+@media(max-width:700px){.cheat-grid{grid-template-columns:1fr;}}
+.cheat-card{
+  background:var(--paper-raised);
+  border:1px solid var(--rule);
+  border-radius:10px;
+  padding:14px 16px;
+}
+.cheat-card h4{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  color:var(--accent-deep);
+  margin:0 0 10px 0;
+}
+.cheat-card pre{
+  margin:0;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  line-height:1.65;
+  color:var(--ink);
+  white-space:pre-wrap;
+}
+
+@media(max-width:820px){
+  .shell{flex-direction:column;}
+  .sidebar{width:100%;height:auto;position:relative;}
+  main{padding:32px 20px 60px 20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <p class="kicker">Arnab's Practice Files</p>
+      <h1>JavaScript Fundamentals</h1>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>PROGRESS</span><span id="progress-count">0 / 11</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+    <nav class="tabs" id="tabs"></nav>
+  </aside>
+
+  <main id="main"></main>
+</div>
+
+<script>
+/* ============================================================
+   CONTENT DATA
+   ============================================================ */
+const TOPICS = [
+{
+  id:'hello',
+  num:'01',
+  title:'Hello World & Comments',
+  sub:'console.log is your window into the program. Comments are for humans only.',
+  prose:`
+    <p><span class="kw">console.log()</span> prints to the console — you'll use it constantly to inspect values while debugging. <span class="kw">//</span> starts a single-line comment; <span class="kw">/* ... */</span> spans multiple lines.</p>
+    <p><strong>Why it matters:</strong> comments don't affect execution at all — they're purely for humans (including future-you). Good comments explain <em>why</em> code does something, not <em>what</em> it does — the code already shows the "what".</p>
+  `,
+  code:`console.log("Hello World!")
+
+//This is a single-line comment
+
+/*
+Multiple line comment —
+spans as many lines as you need
+*/`,
+  challenge:{
+    prompt:'Write a comment above a console.log explaining what a teammate would need to know to understand it in 6 months. Then run it — comments produce no output, but the code below it should still run.',
+    hint:'A good comment explains intent ("why we round up here") not mechanics ("adds 1"). Try: // Rounding up because the API rejects fractional page numbers'
+  }
+},
+{
+  id:'variables',
+  num:'02',
+  title:'Variables & Data Types',
+  sub:'const, let, and var — and why two of them exist to fix the third.',
+  prose:`
+    <table class="notebook-table">
+      <tr><th>Keyword</th><th>Redeclarable?</th><th>Reassignable?</th><th>Scope</th></tr>
+      <tr><td><span class="kw">var</span></td><td>✅ Yes</td><td>✅ Yes</td><td>Function-scoped (or global)</td></tr>
+      <tr><td><span class="kw">let</span></td><td>❌ No</td><td>✅ Yes</td><td>Block-scoped <span class="kw">{ }</span></td></tr>
+      <tr><td><span class="kw">const</span></td><td>❌ No</td><td>❌ No</td><td>Block-scoped</td></tr>
+    </table>
+    <ul>
+      <li><span class="kw">typeof</span> returns a string naming a value's type at runtime.</li>
+      <li><strong>Implicit globals:</strong> assigning without <span class="kw">var</span>/<span class="kw">let</span>/<span class="kw">const</span> silently creates a global. Legal, but a typo anywhere creates a new global instead of an error — never do this.</li>
+      <li><span class="kw">var</span> allows silent redeclaration — one of the core reasons <span class="kw">let</span>/<span class="kw">const</span> exist.</li>
+    </ul>
+  `,
+  code:`let a = 4
+let b = 5.4
+let c = "Hello"
+
+console.log(a, typeof(a))
+console.log(b, typeof(b))
+console.log(c, typeof(c))
+
+let required = true
+console.log(required, typeof(required))
+
+// Declaring without var/let/const (avoid this!)
+d = 10
+console.log(d, typeof(d))
+
+// var CAN be redeclared, let/const CANNOT
+var d = a + b
+console.log(d, typeof(d))
+
+console.log(!required)`,
+  challenge:{
+    prompt:'Rewrite this block using only const and let — no var, no implicit globals. Run it and confirm the output is identical.',
+    hint:'Everything here is only ever assigned once except d — so d needs let, everything else can be const. Declare d with let from the start instead of creating it implicitly.'
+  }
+},
+{
+  id:'conditionals',
+  num:'03',
+  title:'Conditional Statements',
+  sub:'if / else if / else — and why order matters when categories overlap.',
+  prose:`
+    <p><span class="kw">if / else if / else</span> runs one branch based on a condition, checked top to bottom, stopping at the first <span class="kw">true</span> one.</p>
+    <p>In the loop below, <span class="kw">i == 0</span> is checked <em>before</em> the even/odd check — because 0 is technically even too (<span class="kw">0 % 2 == 0</span>), it needs its own branch first, or it would just get labeled "Even".</p>
+  `,
+  code:`const flag = true
+
+if (!flag) {
+    console.log("Condition is true")
+} else {
+    console.log("Condition is false")
+}
+
+for (let i = 0; i < 10; i++) {
+    if (i == 0) {
+        console.log(i + " is Zero")
+    } else if (i % 2 == 0) {
+        console.log(i + " is Even")
+    } else {
+        console.log(i + " is Odd")
+    }
+}`,
+  callout:`<b>== vs ===</b> — this file uses <span class="kw">==</span> (loose equality), which converts types before comparing. <span class="kw">===</span> (strict equality) checks value <em>and</em> type without conversion. Best practice: always use <span class="kw">===</span> / <span class="kw">!==</span>.`,
+  challenge:{
+    prompt:'Add a FizzBuzz branch inside the loop: print "Fizz" for multiples of 3, "Buzz" for multiples of 5, "FizzBuzz" for both — before the existing Zero/Even/Odd logic runs.',
+    hint:'Check divisibility by 15 first (both 3 and 5), then 3, then 5, each with its own else-if — same ordering principle as the Zero check above.'
+  }
+},
+{
+  id:'loops',
+  num:'04',
+  title:'Loops',
+  sub:'Three loop styles, three different use cases.',
+  prose:`
+    <table class="notebook-table">
+      <tr><th>Loop</th><th>Checks condition</th><th>Use when</th></tr>
+      <tr><td><span class="kw">while</span></td><td>Before each iteration</td><td>Unknown iteration count</td></tr>
+      <tr><td><span class="kw">do...while</span></td><td>After each iteration</td><td>Body must run at least once</td></tr>
+      <tr><td><span class="kw">for</span></td><td>Before each iteration</td><td>Known start, end, step</td></tr>
+    </table>
+    <ul>
+      <li><span class="kw">n++</span> is post-increment — returns the current value, <em>then</em> increments. That's why it prints 0–9, not 1–10.</li>
+      <li><span class="kw">break</span> exits the loop immediately; its sibling <span class="kw">continue</span> skips to the next iteration without exiting.</li>
+    </ul>
+  `,
+  code:`console.log("While Loop:")
+let n = 0
+while (n < 10) {
+    console.log(n++)
+}
+
+console.log("Do While Loop:")
+let m = 0
+do {
+    console.log(m++)
+} while (m < 5)
+
+console.log("For Loop:")
+let num = 1
+for (let i = 1; i < 100; i++) {
+    if (i % 2 == 0 && i % 5 == 0) {
+        console.log(i)
+        num++
+        if (num == 10) {
+            break
+        }
+    }
+}`,
+  challenge:{
+    prompt:'Rewrite the for loop to use continue instead of a nested if to skip non-multiples-of-10. Run both versions and compare the output — it should match exactly.',
+    hint:'if (!(i % 2 == 0 && i % 5 == 0)) { continue } — then the rest of the body only runs for multiples of 10, no nesting needed.'
+  }
+},
+{
+  id:'functions',
+  num:'05',
+  title:'Functions',
+  sub:'Function declarations vs arrow functions — and a bug hiding in plain sight.',
+  prose:`
+    <ul>
+      <li><strong>Function declaration</strong> — hoisted, so it can be called before its definition appears in the file.</li>
+      <li><strong>Arrow function</strong> — more concise; not hoisted the same way. A single-expression body implicitly returns without needing braces or <span class="kw">return</span>.</li>
+    </ul>
+  `,
+  callout:`<b>Bug worth flagging:</b> the original file declares <span class="kw">add</span> twice — once as a <span class="kw">function</span>, once as <span class="kw">var</span>. The second silently overwrites the first. Run the code below, then try commenting out the arrow version to see the function declaration's result instead.`,
+  code:`// Method 1: function declaration
+function add(a, b){
+    return a + b
+}
+console.log(add(5, 10))
+
+// Method 2: arrow function — this OVERWRITES the function above!
+var add = ((a, b) => a + b)
+console.log(add(4, 12))`,
+  challenge:{
+    prompt:'Fix the naming collision: rename the two functions addFn and addArrow so both can be called independently. Confirm both still return the correct sums.',
+    hint:'function addFn(a, b) { return a + b } ... var addArrow = (a, b) => a + b — now call addFn(5,10) and addArrow(4,12) separately.'
+  }
+},
+{
+  id:'arrays',
+  num:'06',
+  title:'Arrays',
+  sub:'push/pop mutate in place. map/filter/reduce hand back something new.',
+  prose:`
+    <p><strong>Array() constructor gotcha:</strong> <span class="kw">Array(6)</span> doesn't create <span class="kw">[6]</span> — it creates an empty array with <span class="kw">.length</span> 6. Prefer array literals <span class="kw">[]</span> for real data.</p>
+    <table class="notebook-table">
+      <tr><th>Mutates original?</th><th>Methods</th></tr>
+      <tr><td>✅ Yes</td><td><span class="kw">push, pop, unshift, shift, sort, reverse</span></td></tr>
+      <tr><td>❌ No (returns new)</td><td><span class="kw">slice, map, filter, reduce, concat</span></td></tr>
+    </table>
+    <p><strong>map</strong> transforms every element (same length out). <strong>filter</strong> keeps only elements passing a test (shorter or equal). <strong>reduce</strong> collapses the array into one value. Chaining them (<span class="kw">filter().map().reduce()</span>) reads like a pipeline.</p>
+  `,
+  code:`var marks = [10, 20, 53, 65, 100, 75]
+
+var subMarks = marks.slice(3)
+console.log("Sliced:", subMarks)
+
+marks.push(90)
+console.log("After push:", marks)
+
+marks.pop()
+console.log("After pop:", marks)
+
+marks.unshift(5)
+console.log("After unshift:", marks)
+
+console.log("Length:", marks.length)
+console.log("Index of 65:", marks.indexOf(65))
+
+var total = marks.reduce((sum, mark) => sum + mark, 0)
+console.log("Sum via reduce:", total)
+
+var evenMarks = marks.filter(m => m % 2 == 0)
+console.log("Even marks:", evenMarks)
+
+var squareMarks = [12, 13, 14].map(x => x * x)
+console.log("Squares:", squareMarks)
+
+var chained = [12, 13, 14, 15, 16]
+    .filter(n => n % 2 == 0)
+    .map(n => n * 3)
+    .reduce((sum, n) => sum + n, 0)
+console.log("Chained result:", chained)
+
+var fruits = ['banana', 'apple', 'mango', 'grapes']
+console.log("Sorted:", fruits.sort())
+console.log("Reversed:", fruits.reverse())`,
+  challenge:{
+    prompt:'Given [5, 8, 12, 3, 19, 7], write one chained filter → map → reduce that finds the sum of doubled values greater than 5.',
+    hint:'[5,8,12,3,19,7].filter(n => n > 5).map(n => n * 2).reduce((sum, n) => sum + n, 0)'
+  }
+},
+{
+  id:'strings',
+  num:'07',
+  title:'Strings',
+  sub:'slice, split, trim, and a substring-counting idiom worth memorizing.',
+  prose:`
+    <ul>
+      <li><span class="kw">.slice(start, end)</span> extracts characters up to (not including) <span class="kw">end</span>.</li>
+      <li><span class="kw">.split(separator)</span> breaks a string into an array, removing the separator itself.</li>
+      <li><span class="kw">parseInt()</span> converts a string to a number — necessary because <span class="kw">'23' + '45'</span> on strings concatenates to <span class="kw">'2345'</span> instead of adding.</li>
+    </ul>
+  `,
+  callout:`<b>Worth testing live:</b> <span class="kw">'tuesday '.split('s')</span> — "tuesday" has no lowercase "s" in it, so this returns a single-element array, and <span class="kw">daySplit[1]</span> comes back <span class="kw">undefined</span>. Run it below and see for yourself.`,
+  code:`var day = 'tuesday '
+
+console.log("Length:", day.length)
+console.log("Sliced:", day.slice(0, 3))
+
+var daySplit = day.split('s')
+console.log("Split result:", daySplit)
+console.log("daySplit[1]:", daySplit[1])
+
+var num1 = '23'
+var num2 = '45'
+var sum = parseInt(num1) + parseInt(num2)
+console.log("Parsed sum:", String(sum))
+
+// Count occurrences of a substring
+var newDay = day + 'is funday day'
+var value = newDay.indexOf('day')
+var count = 0
+while (value != -1) {
+    count++
+    value = newDay.indexOf('day', value + 1)
+}
+console.log("Occurrences of 'day':", count)`,
+  challenge:{
+    prompt:"Fix the split example: pick a string that actually contains multiple 's' characters (e.g. 'success is a process'), split on 's', and trace what index [1] becomes.",
+    hint:"'success is a process'.split('s') → ['', 'ucce', '', ' i', ' a proce', ''] — index [1] is 'ucce', not undefined, because there ARE multiple 's' characters to split on."
+  }
+},
+{
+  id:'objects',
+  num:'08',
+  title:'Objects',
+  sub:'Key/value pairs — the precursor to classes.',
+  prose:`
+    <ul>
+      <li><strong>Dot notation</strong> (<span class="kw">obj.key</span>) — clean, but the key must be known ahead of time.</li>
+      <li><strong>Bracket notation</strong> (<span class="kw">obj['key']</span>) — required when the key is dynamic or not a valid identifier.</li>
+      <li>Inside a method, <span class="kw">this</span> refers to the object the method was called <em>on</em> — how a method reaches its own object's data without hardcoding a name.</li>
+      <li><span class="kw">for...in</span> iterates over an object's <em>keys</em>; <span class="kw">'key' in obj</span> checks existence.</li>
+    </ul>
+  `,
+  code:`let employee = {
+    firstName: 'Arnab',
+    lastName: 'Ghosh',
+    age: 28,
+    fullName: function() {
+        return this.firstName + ' ' + this.lastName
+    }
+}
+
+console.log(employee.fullName())
+console.log(employee.firstName)
+console.log(employee['lastName'])
+
+employee['age'] = 30
+employee.gender = 'Male'
+console.log('gender' in employee)
+
+for (let key in employee) {
+    console.log(key, "->", employee[key])
+}`,
+  challenge:{
+    prompt:'Add a method birthdayIncrement() to employee that increments this.age by 1. Call it twice and log employee.age to confirm this is correctly bound both times.',
+    hint:'birthdayIncrement: function() { this.age = this.age + 1 } — then employee.birthdayIncrement(); employee.birthdayIncrement(); console.log(employee.age) should show +2.'
+  }
+},
+{
+  id:'classes',
+  num:'09',
+  title:'Classes',
+  sub:'A blueprint for objects — write the shape once, stamp out as many instances as you like.',
+  prose:`
+    <ul>
+      <li><span class="kw">age = 25;</span> — a class field, present on every instance by default.</li>
+      <li><span class="kw">constructor(...)</span> runs automatically on <span class="kw">new Person(...)</span>, typically assigning arguments to <span class="kw">this</span>.</li>
+      <li><span class="kw">get location()</span> — a getter: looks like a property, runs as a method each time it's accessed.</li>
+      <li><span class="kw">fullName()</span> — an instance method, shared across all instances via the prototype (not copied per-instance).</li>
+    </ul>
+    <p>In the original files, <span class="kw">Class.js</span> exports <span class="kw">Person</span> with <span class="kw">module.exports</span>, and <span class="kw">CallingClass.js</span> pulls it in with <span class="kw">require(...)</span> — Node's module system for splitting code across files. Combined below into one runnable block.</p>
+  `,
+  code:`class Person {
+    age = 25;
+
+    get location() {
+        return 'Canada';
+    }
+
+    constructor(firstName, lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
+    fullName() {
+        console.log(this.firstName + ' ' + this.lastName);
+    }
+}
+
+let person = new Person('Arnab', 'Ghosh')
+console.log(person.age)
+console.log(person.location)
+person.fullName()
+
+let person1 = new Person('Mousumi', 'Pal')
+console.log(person1.age)
+console.log(person1.location)
+person1.fullName()`,
+  callout:`<b>The real point of two instances:</b> person and person1 are separate objects — changing person.firstName has zero effect on person1.firstName. But both share the exact same fullName() method rather than each getting their own copy.`,
+  challenge:{
+    prompt:"Add a set alongside get location() (a setter), so person.location = 'USA' actually updates something (store it in a field like this._country).",
+    hint:"set location(value) { this._country = value } — and update the getter to: get location() { return this._country || 'Canada' }"
+  }
+},
+{
+  id:'inheritance',
+  num:'10',
+  title:'Inheritance',
+  sub:'extends + super — get everything for free, override only what changes.',
+  prose:`
+    <ul>
+      <li><span class="kw">extends</span> sets up a parent-child relationship — <span class="kw">Pet</span> gets everything <span class="kw">Person</span> has, then can override specific pieces.</li>
+      <li><span class="kw">super(...)</span> calls the parent's constructor — mandatory before using <span class="kw">this</span> in a derived class.</li>
+      <li><strong>Method overriding:</strong> when <span class="kw">Pet</span> redefines <span class="kw">get location()</span>, calling <span class="kw">pet.location</span> uses Pet's version, not Person's. This is polymorphism.</li>
+      <li>What <em>isn't</em> overridden (like <span class="kw">age</span> and <span class="kw">fullName()</span>) still comes through unchanged via the prototype chain.</li>
+    </ul>
+  `,
+  code:`class Person {
+    age = 25;
+    get location() { return 'Canada'; }
+    constructor(firstName, lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+    fullName() {
+        console.log(this.firstName + ' ' + this.lastName);
+    }
+}
+
+class Pet extends Person {
+    // Method overriding
+    get location(){
+        return 'BlueCross'
+    }
+    constructor(firstName, lastName){
+        super(firstName, lastName)
+    }
+}
+
+let pet = new Pet('Sam', 'Sun')
+console.log(pet.age)        // inherited
+console.log(pet.location)   // overridden
+pet.fullName()               // inherited
+
+let pet2 = new Pet('Max', 'Paw')
+pet2.fullName()`,
+  challenge:{
+    prompt:'Add a new method bark() to Pet that does NOT exist on Person. Then try calling it on a plain Person instance and observe what happens.',
+    hint:"Add: bark() { console.log(this.firstName + ' says woof!') } to Pet. pet.bark() works, but new Person('X','Y').bark() throws 'bark is not a function' — inheritance only flows one direction."
+  }
+}
+];
+
+const CHEATSHEET = `
+<div class="cheat-grid">
+  <div class="cheat-card"><h4>Declaring variables</h4><pre>const x = 5   // preferred default
+let y = 10    // only if reassigned
+var z = 15    // avoid in new code</pre></div>
+  <div class="cheat-card"><h4>Equality</h4><pre>a === b   // strict — use this
+a == b    // loose — avoid</pre></div>
+  <div class="cheat-card"><h4>Loops at a glance</h4><pre>for (let i=0; i&lt;n; i++) {}   // known count
+while (condition) {}           // check-first
+do {} while (condition);       // run-at-least-once</pre></div>
+  <div class="cheat-card"><h4>Returns a NEW array</h4><pre>arr.slice(a, b)
+arr.map(fn)
+arr.filter(fn)
+arr.reduce(fn, initial)
+arr.concat(other)</pre></div>
+  <div class="cheat-card"><h4>MUTATES the original</h4><pre>arr.push(x) / arr.pop()
+arr.unshift(x) / arr.shift()
+arr.sort(fn) / arr.reverse()</pre></div>
+  <div class="cheat-card"><h4>Object access</h4><pre>obj.key         // static key
+obj['key']      // dynamic key
+'key' in obj    // check existence
+for (let k in obj) {}</pre></div>
+</div>
+<div class="cheat-card" style="margin-top:16px;">
+  <h4>Class skeleton</h4>
+  <pre>class Base {
+  field = value
+  constructor(a) { this.a = a }
+  method() { /* ... */ }
+  get computed() { /* ... */ }
+}
+
+class Derived extends Base {
+  constructor(a, b) {
+    super(a)          // must run before using \`this\`
+    this.b = b
+  }
+  method() { /* override */ }   // polymorphism
+}</pre>
+</div>
+`;
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let currentIndex = 0;
+const completed = new Set();
+
+/* ============================================================
+   RENDER: SIDEBAR
+   ============================================================ */
+function renderTabs(){
+  const tabsEl = document.getElementById('tabs');
+  tabsEl.innerHTML = '';
+  TOPICS.forEach((t, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (i === currentIndex ? ' active' : '');
+    btn.innerHTML = `<span class="tab-num">${t.num}</span><span>${t.title}</span><span class="tab-check ${completed.has(t.id) ? 'done' : ''}">✓</span>`;
+    btn.onclick = () => { currentIndex = i; renderAll(); window.scrollTo(0,0); };
+    tabsEl.appendChild(btn);
+  });
+  const cheatBtn = document.createElement('button');
+  cheatBtn.className = 'tab-btn' + (currentIndex === TOPICS.length ? ' active' : '');
+  cheatBtn.innerHTML = `<span class="tab-num">11</span><span>Cheat Sheet</span><span class="tab-check"></span>`;
+  cheatBtn.onclick = () => { currentIndex = TOPICS.length; renderAll(); window.scrollTo(0,0); };
+  tabsEl.appendChild(cheatBtn);
+
+  document.getElementById('progress-count').textContent = `${completed.size} / ${TOPICS.length}`;
+  document.getElementById('progress-fill').style.width = (completed.size / TOPICS.length * 100) + '%';
+}
+
+/* ============================================================
+   CODE EXECUTION
+   ============================================================ */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function formatArg(a){
+  if (typeof a === 'object' && a !== null) {
+    try { return JSON.stringify(a); } catch(e) { return String(a); }
+  }
+  return String(a);
+}
+function runUserCode(code, outputEl){
+  const logs = [];
+  const fakeConsole = {
+    log: (...args) => logs.push({type:'log', text: args.map(formatArg).join(' ')}),
+    error: (...args) => logs.push({type:'error', text: args.map(formatArg).join(' ')}),
+    warn: (...args) => logs.push({type:'log', text: args.map(formatArg).join(' ')})
+  };
+  try {
+    const fn = new Function('console', code);
+    fn(fakeConsole);
+    if (logs.length === 0){
+      outputEl.innerHTML = `<div class="log-line muted">(no output — try adding a console.log)</div>`;
+    } else {
+      outputEl.innerHTML = logs.map(l =>
+        `<div class="log-line ${l.type === 'error' ? 'error' : ''}"><span class="arrow">›</span>${escapeHtml(l.text)}</div>`
+      ).join('');
+    }
+  } catch(e) {
+    outputEl.innerHTML = `<div class="log-line error"><span class="arrow">✕</span>${escapeHtml(e.message)}</div>`;
+  }
+}
+
+/* ============================================================
+   RENDER: MAIN CONTENT
+   ============================================================ */
+function renderMain(){
+  const mainEl = document.getElementById('main');
+
+  if (currentIndex === TOPICS.length){
+    mainEl.innerHTML = `
+      <p class="eyebrow">Reference</p>
+      <h2 class="section-title">Cheat Sheet</h2>
+      <p class="section-sub">Everything above, condensed. Come back here once the individual sections feel solid.</p>
+      <div class="prose">${CHEATSHEET}</div>
+      <div class="mark-done-row">
+        <div class="nav-arrows">
+          <button class="nav-arrow" id="prev-btn">← Previous</button>
+          <button class="nav-arrow" id="next-btn" disabled>Next →</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('prev-btn').onclick = () => { currentIndex--; renderAll(); window.scrollTo(0,0); };
+    return;
+  }
+
+  const t = TOPICS[currentIndex];
+  mainEl.innerHTML = `
+    <p class="eyebrow">Topic ${t.num} of 11</p>
+    <h2 class="section-title">${t.title}</h2>
+    <p class="section-sub">${t.sub}</p>
+    <div class="prose">${t.prose}</div>
+    ${t.callout ? `<div class="callout">${t.callout}</div>` : ''}
+
+    <div class="runner">
+      <div class="runner-head">
+        <div class="runner-dots"><span></span><span></span><span></span></div>
+        <div class="runner-filename">${t.id}.js — editable</div>
+        <div class="runner-actions">
+          <button class="runner-btn reset-btn" id="reset-btn">Reset</button>
+          <button class="runner-btn run-btn" id="run-btn">▶ Run</button>
+        </div>
+      </div>
+      <textarea class="code-editor" id="code-editor" spellcheck="false">${escapeHtml(t.code)}</textarea>
+      <div class="output-panel">
+        <div class="output-label">Console output</div>
+        <div id="output-content"><div class="log-line muted">Click Run to execute this code.</div></div>
+      </div>
+    </div>
+
+    <div class="challenge">
+      <div class="challenge-head">
+        <span class="challenge-badge">Try this next</span>
+      </div>
+      <div class="challenge-body">${t.challenge.prompt}</div>
+      <button class="hint-toggle" id="hint-btn">Show hint</button>
+      <div class="hint-box" id="hint-box">${t.challenge.hint}</div>
+    </div>
+
+    <div class="mark-done-row">
+      <button class="mark-done-btn ${completed.has(t.id) ? 'done' : ''}" id="done-btn">
+        ${completed.has(t.id) ? '✓ Marked complete' : 'Mark section complete'}
+      </button>
+      <div class="nav-arrows">
+        <button class="nav-arrow" id="prev-btn" ${currentIndex === 0 ? 'disabled' : ''}>← Previous</button>
+        <button class="nav-arrow" id="next-btn">Next →</button>
+      </div>
+    </div>
+  `;
+
+  const editor = document.getElementById('code-editor');
+  const outputEl = document.getElementById('output-content');
+
+  document.getElementById('run-btn').onclick = () => runUserCode(editor.value, outputEl);
+  document.getElementById('reset-btn').onclick = () => {
+    editor.value = t.code;
+    outputEl.innerHTML = '<div class="log-line muted">Click Run to execute this code.</div>';
+  };
+  document.getElementById('hint-btn').onclick = (e) => {
+    const box = document.getElementById('hint-box');
+    box.classList.toggle('shown');
+    e.target.textContent = box.classList.contains('shown') ? 'Hide hint' : 'Show hint';
+  };
+  document.getElementById('done-btn').onclick = (e) => {
+    if (completed.has(t.id)) { completed.delete(t.id); }
+    else { completed.add(t.id); }
+    renderAll();
+  };
+  document.getElementById('prev-btn').onclick = () => {
+    if (currentIndex > 0){ currentIndex--; renderAll(); window.scrollTo(0,0); }
+  };
+  document.getElementById('next-btn').onclick = () => {
+    currentIndex = Math.min(currentIndex + 1, TOPICS.length);
+    renderAll(); window.scrollTo(0,0);
+  };
+
+  // keyboard: allow Tab key inside editor instead of losing focus
+  editor.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab'){
+      e.preventDefault();
+      const start = editor.selectionStart, end = editor.selectionEnd;
+      editor.value = editor.value.substring(0, start) + '    ' + editor.value.substring(end);
+      editor.selectionStart = editor.selectionEnd = start + 4;
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter'){
+      runUserCode(editor.value, outputEl);
+    }
+  });
+}
+
+function renderAll(){
+  renderTabs();
+  renderMain();
+}
+
+renderAll();
+</script>
+</body>
+</html>
